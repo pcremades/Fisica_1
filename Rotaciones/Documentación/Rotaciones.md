@@ -29,10 +29,8 @@ Colocar el tornillo con la tuerca y las arandelas necesarias en el orificio. Col
 
 En el repositorio podrá encontrar los archivos necesarios para imprimir en 3D el sistema de poleas. El mismo consiste en 2 partes que deben adherirse mediante cemento de contacto u otro pegamento adecuado para ABS. Antes, deberá adherir una de las coronas del rodamiento axial (la de mayor diámetro interno) al soporte y luego pegar las poleas al mismo. En la figura 2 puede verse el sistema de poleas armado y el rodamiento axial montado sobre el eje (tornillo de 10mm).
 
-<p align="center"> 
-  <img src="https://github.com/pcremades/Rotaciones/blob/master/Documentaci%C3%B3n/figs/fig2.png">
-  <em>Fig 2. Foto del sistema de rotaciones completo.</em>
-</p>
+![Fig 1](https://github.com/pcremades/Rotaciones/raw/master/Documentaci%C3%B3n/figs/fig2.png)
+*Fig 2. Foto del sistema de rotaciones completo.*
 
 Por la parte inferior del sistema de poleas, debe pegar la zebra para el sistema de adquisición de datos. En el repositorio podrá encontrar el archivo para imprimir la zebra.
 
