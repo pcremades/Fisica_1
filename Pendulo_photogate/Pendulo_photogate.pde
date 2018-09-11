@@ -38,7 +38,7 @@ void setup() {
   size(400, 300);
   serialPorts = Serial.list(); //Get the list of tty interfaces
   for ( int i=0; i<serialPorts.length; i++) { //Search for ttyACM*
-    if ( serialPorts[i].contains("ttyACM") ) {  //If found, try to open port.
+    if ( serialPorts[i].contains("ttyUSB") ) {  //If found, try to open port.
       println(serialPorts[i]);
       try {
         port = new Serial(this, serialPorts[i], 115200);

@@ -23,6 +23,8 @@
 * Uso:
 *  - Conecte el sistema de adquisición de la rueda. Presione 'r' para reiniciar.
 * Change Log:
+* 11/09/2018: Cambio la cantidad de ranuras a 32, que es la cantidad de transiciones en la zebra.
+*  Hay que rediseñar el código para poner el número de franjas como constante.
 * 
 * To do:
 *
@@ -51,7 +53,7 @@ void setup(){
   //noLoop();
   serialPorts = Serial.list(); //Get the list of tty interfaces
   for( int i=0; i<serialPorts.length; i++){ //Search for ttyACM*
-    if( serialPorts[i].contains("ttyUSB") ){  //If found, try to open port.
+    if( serialPorts[i].contains("ttyUSB") | serialPorts[i].contains("ttyACM") ){  //If found, try to open port.
                 println(serialPorts[i]);
       try{
         port = new Serial(this, serialPorts[i], 115200);
@@ -73,7 +75,7 @@ void serialEvent( Serial port ){
     inByte = port.readChar();
     if( inByte == '2' || inByte == '1' ){  //Si se recibe un '2' o '1', incrementar la posición en 1. Esta previsto poder detectar sentido de giro.
       ps++;
-      ws1= 2.0*PI/64.0/(millis() - time1)*1000.0;  //Calcula la velocidad angular instantánea.
+      ws1= 2.0*PI/32.0/(millis() - time1)*1000.0;  //Calcula la velocidad angular instantánea.
       /*wsArray[iWS] = ws1;
       iWS++;
       if(iWS > 9)
@@ -87,7 +89,7 @@ void serialEvent( Serial port ){
 
 void draw(){
   background(200);
-  theta = ps*2*PI/168.0; // Posición en radianes
+  theta = ps*2*PI/32.0; // Posición en radianes
   translate(width/2, height/2);
   fill(0, 200, 255);
   ellipse(0,0, radio, radio);
@@ -102,7 +104,7 @@ void draw(){
   
   //Imprime serie de datos cada 300ms
   if( millis() - time > 500.0 ){
-    ws = 2*PI*((ps - pulse1)/168.0)/(millis() - time)*1000.0;  //Velocidad angular media cada 300ms
+    ws = 2*PI*((ps - pulse1)/32.0)/(millis() - time)*1000.0;  //Velocidad angular media cada 300ms
     /*for( int k=0; k<nWS; k++){
      ws = ws + wsArray[k];
     }*/
@@ -110,11 +112,6 @@ void draw(){
     time = millis();
     pulse1 = ps;
     vs = ws * 0.15;  //Velocidad tangencial.
-    /*print(time);
-    print(" ");
-    print(ps);
-    print(" ");
-    println(ws1);*/
   }
   
   //Busca la velocidad angular máxima
