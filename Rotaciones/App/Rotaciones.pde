@@ -31,111 +31,78 @@
 */
 
 import processing.serial.*;
+import g4p_controls.*;
 
 Serial port;
-int ps, ps_old;
-float ws, vs, g, ws1, maxWS, Tau;
-float[] wsArray;
-int iWS=0;
-int nWS;
-float theta;
-float time=1, time1, diffTime;
-char inByte;
-int pulse1;
-float radio=100;
-int lookformin;
 
-String[] serialPorts;
+//Controles
+GButton Reiniciar;
 
+//Variables
+int ps;
+float ws[] = new float[5];
+float wsSmooth;
+int time;
+
+//Constantes
+int STRIPS = 32;
 
 void setup(){
-  size(800, 600);
-  //noLoop();
-  serialPorts = Serial.list(); //Get the list of tty interfaces
-  for( int i=0; i<serialPorts.length; i++){ //Search for ttyACM*
-    if( serialPorts[i].contains("ttyUSB") | serialPorts[i].contains("ttyACM") ){  //If found, try to open port.
-                println(serialPorts[i]);
-      try{
-        port = new Serial(this, serialPorts[i], 115200);
-        port.bufferUntil('\r');
-      }
-      catch(Exception e){
-      }
-    }
-  }
-  frameRate(30);
-  ellipseMode(RADIUS);
-  wsArray = new float[nWS];
-}
-
-//ISR para procesar datos del puerto serie.
-void serialEvent( Serial port ){
-    ps_old = ps;
-    while(port.available() > 0){
-    inByte = port.readChar();
-    if( inByte == '2' || inByte == '1' ){  //Si se recibe un '2' o '1', incrementar la posición en 1. Esta previsto poder detectar sentido de giro.
-      ps++;
-      ws1= 2.0*PI/32.0/(millis() - time1)*1000.0;  //Calcula la velocidad angular instantánea.
-      /*wsArray[iWS] = ws1;
-      iWS++;
-      if(iWS > 9)
-        iWS=0;*/
-      time1 = millis();
-    }
+ size( 800, 600 );
+ if( openComm() == 1 ){
+   println( "No hay ningún colorímetro conectado" );
+   exit();
  }
- //diffTime = millis() - time1;
+ 
+ Reiniciar = new GButton(this, width*0.8, height*0.9, 90, 30, "Reiniciar"); 
 }
 
 
 void draw(){
-  background(200);
-  theta = ps*2*PI/32.0; // Posición en radianes
-  translate(width/2, height/2);
-  fill(0, 200, 255);
-  ellipse(0,0, radio, radio);
-  line(0,0, radio*cos(theta), radio*sin(theta));
-  
-  //Presinar 'r' para reiniciar.
-  if( keyPressed ){
-    if( key == 'r' ) 
-      ps = 0;
-      maxWS = 0;
-  }
-  
-  //Imprime serie de datos cada 300ms
-  if( millis() - time > 500.0 ){
-    ws = 2*PI*((ps - pulse1)/32.0)/(millis() - time)*1000.0;  //Velocidad angular media cada 300ms
-    /*for( int k=0; k<nWS; k++){
-     ws = ws + wsArray[k];
-    }*/
-    //ws=;
+  println(round(wsSmooth*100)/100.0);
+  delay(300);
+}
+
+void serialEvent(Serial port) { 
+  String inString = port.readString();
+  if( inString.contains("1") ){
+    ps++;
+    float wsTmp = 2.0*PI/float(STRIPS)/(millis() - time)*1000.0;
+    for( int i=0; i<4; i++ ){
+      ws[i] = ws[i+1];
+    }
+    ws[4] = wsTmp;
+    wsSmooth = 0;
+    for( int i = 0; i<5; i++){
+      wsSmooth += ws[i];
+    }
+    wsSmooth /= 5;
     time = millis();
-    pulse1 = ps;
-    vs = ws * 0.15;  //Velocidad tangencial.
   }
-  
-  //Busca la velocidad angular máxima
-  if( ws > maxWS*1.1 ){
-   maxWS = ws;
-   Tau = millis();
-   lookformin = 1;
-  }
-  //Calcula el coeficiente de amortiguamiento cuando la velocidad angular
-  //ha caído a 0.1 rad/s.
-  else if( (ws < 0.1) && (lookformin == 1) ){
-   Tau = -maxWS/(millis() - Tau)*1000;
-   lookformin = 0;
-  }
+}
+
+public void handleButtonEvents(GButton button, GEvent event) {
+  if( button == Reiniciar ){
     
-  fill(150,20,20);
-  textSize(24);
-  text("Velocidad Angular = "+round(ws*100)/100.0, -width/2 + 30, -height/2 + 30);
-  //text(ws, -100, -100);
-  text("Máxima Velocidad Angular = "+round(maxWS*100)/100.0, -width/2 + 30, -height/2 + 70);
-  //text(maxWS, -50, 150);
-  //text("Alfa = "+round(Tau*100)/100.0, -width/2 + 30, -height/2 + 110);
-  //text(Tau, -190, 170);
-  textSize(14);
-  fill(250,20,20);
-  text("Presione 'R' para reiniciar", -width/2 + 30, height/2-20);
+  }
+}
+
+int openComm() {
+  String[] serialPorts = Serial.list(); //Get the list of tty interfaces
+  for ( int i=0; i<serialPorts.length; i++) { //Search for ttyACM*
+    if ( serialPorts[i].contains("ttyACM") || serialPorts[i].contains("ttyUSB0") || serialPorts[i].contains("COM") ) {  //If found, try to open port.
+      println(serialPorts[i]);
+      try {
+        port = new Serial(this, serialPorts[i], 115200);
+        port.bufferUntil(10);
+      }
+      catch(Exception e) {
+        return 1;
+      }
+    }
+  }
+  if (port != null)
+    return 0;
+  else
+    return 1;
 }
