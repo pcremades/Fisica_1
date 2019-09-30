@@ -106,12 +106,15 @@ void serialEvent(Serial port) {
     for ( int i=0; i<6; i++ ) {
       tBuffer[i] = tBuffer[i+1];
     }
+
+//Calculamos la velocidad angular con un diferenciador de orden 3 para filtrar el ruido.
     tBuffer[6] = millis()/1000.0;
     float t_diff1 = tBuffer[4] - tBuffer[2];
     float t_diff2 = tBuffer[5] - tBuffer[1];
     float t_diff3 = tBuffer[6] - tBuffer[0];
     wsSmooth = 32*arcPos/(5*t_diff1 + 4*t_diff2 + t_diff3);
     
+    //Buscamos el valor máximo de la velocidad
     if(wsSmooth > wsMax)
       wsMax = wsSmooth;
 
